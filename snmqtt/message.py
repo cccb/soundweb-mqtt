@@ -17,6 +17,8 @@ RAW_MSG = b'\x84'
 
 
 def _encode_body_char(char):
+    char = char.to_bytes(1, 'big')
+
     # Substitute special chars
     special = {
         STX: ESC + b'\x82',
@@ -39,9 +41,13 @@ def encode_message_body(body):
     body_buffer = bytes()
     checksum = 0
 
+    # Encode message
     for c in body:
         checksum ^= c
-        body_buffer += _encode_body_char(c.to_bytes(1, 'big'))
+        body_buffer += _encode_body_char(c)
+
+    # Append checksum
+    body_buffer += _encode_body_char(checksum)
 
     return body_buffer
 

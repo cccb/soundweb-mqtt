@@ -8,6 +8,13 @@ NAK = b'\x15'
 
 ESC = b'\x1b'
 
+# Commands
+SET_VALUE = b'\x80'
+SET_STRING = b'\x81'
+REQUEST_VALUE = b'\x82'
+REQUEST_STRING = b'\x83'
+RAW_MSG = b'\x84'
+
 
 def _encode_body_char(char):
     # Substitute special chars
@@ -37,5 +44,7 @@ def encode_message_body(body):
         body_buffer += _encode_body_char(c.to_bytes(1, 'big'))
 
     return body_buffer
+
+
 
 

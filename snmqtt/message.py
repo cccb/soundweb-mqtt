@@ -36,8 +36,10 @@ def _encode_body_char(char):
     return char
 
 
-def encode_message_body(body):
-    """Encode message body, escap chars"""
+def _encode_message_body(body):
+    """
+    Encode message body, escape chars
+    """
     body_buffer = bytes()
     checksum = 0
 
@@ -50,6 +52,20 @@ def encode_message_body(body):
     body_buffer += _encode_body_char(checksum)
 
     return body_buffer
+
+
+def encode_message(body):
+    """
+    Encode a complete message
+    """
+    # Start message
+    msg_buffer = STX
+    # Add body
+    msg_buffer += _encode_message_body(body)
+    # End message
+    msg_buffer += ETX
+
+    return msg_buffer
 
 
 

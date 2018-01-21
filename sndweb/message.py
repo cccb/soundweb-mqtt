@@ -54,7 +54,7 @@ def _encode_message_body(body):
     return body_buffer
 
 
-def encode_message(body):
+def _encode_message(body):
     """
     Encode a complete message
     """
@@ -68,5 +68,12 @@ def encode_message(body):
     return msg_buffer
 
 
+def set_value(control_group, control_id, value):
+    """Encode set value message"""
+    message = SET_VALUE + \
+              control_group.to_bytes(1, 'big') + \
+              control_id.to_bytes(1, 'big') + \
+              value.to_bytes(2, 'big')
 
+    return _encode_message(message)
 

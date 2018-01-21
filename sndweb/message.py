@@ -15,6 +15,16 @@ REQUEST_VALUE = b'\x82'
 REQUEST_STRING = b'\x83'
 RAW_MSG = b'\x84'
 
+# Groups
+SW_AMX_BUTTON = 0
+SW_AMX_TOGGLE = 1
+SW_AMX_LED = 2
+SW_AMX_PRESET = 3
+SW_AMX_SPIN = 4
+SW_AMX_LEVEL = 5
+SW_AMX_SOURCE = 6
+SW_AMX_TEXT = 7
+
 
 def _encode_body_char(char):
     char = char.to_bytes(1, 'big')
@@ -77,3 +87,31 @@ def set_value(control_group, control_id, value):
 
     return _encode_message(message)
 
+
+def set_string(control_group, control_id, string):
+    """Encode set string message"""
+    message = SET_STRING + \
+              control_group.to_bytes(1, 'big') + \
+              control_id.to_bytes(1, 'big') + \
+              string.encode('utf-8') + \
+              b'\x00'
+
+    return _encode_message(message)
+
+
+def request_value(control_group, control_id):
+    """Encode request value message"""
+    message = REQUEST_VALUE + \
+              control_group.to_bytes(1, 'big') + \
+              control_id.to_bytes(1, 'big')
+
+    return _encode_message(message)
+
+
+def request_string(control_group, control_id):
+    """Encode request string message"""
+    message = REQUEST_STRING + \
+              control_group.to_bytes(1, 'big') + \
+              control_id.to_bytes(1, 'big')
+
+    return _encode_message(message)

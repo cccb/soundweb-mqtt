@@ -27,9 +27,16 @@ def test_set_value():
     msg = message.set_value(0xf0, 0x0a, 0xfaaf)
 
     assert msg[0] == message.STX[0]
-    assert msg[1] == message.SET_VALUE[0]
+    assert msg[1] == 0x80
     assert msg[2] == 0xf0
     assert msg[3] == 0x0a
     assert msg[4] == 0xfa
     assert msg[5] == 0xaf
     assert msg[7] == message.ETX[0] # 6 is checksum
+
+
+def test_set_string():
+    msg = message.set_string(0xf0, 0x0a, "test")
+
+    assert msg[0] == message.STX[0]
+    assert msg[1] == 0x81

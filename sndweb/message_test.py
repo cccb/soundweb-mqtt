@@ -1,4 +1,6 @@
 
+import pytest
+
 from sndweb import message
 
 
@@ -24,6 +26,15 @@ def test_decode_message_body():
     body = b'\xfa\x02\x03\xff'
     encoded = message.encode_message_body(body)
     assert body == message.decode_message_body(encoded)
+
+    # Trigger errors
+    with pytest.raises(message.MessageError):
+        message.decode_message_body(b'f')
+
+    with pytest.raises(message.ChecksumError):
+        body = b'\xfa\x02\x03\xff'
+        encoded = b'\xff' + message.encode_message_body(body)
+        message.decode_message_body(encoded)
 
 
 

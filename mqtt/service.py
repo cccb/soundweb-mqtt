@@ -19,9 +19,10 @@ def _make_message_handler(actions):
         # Receive and decode, publish in queue
         action_type = tokens[-1]
         try:
-            action_payload = json.loads(msg.payload)
+            action_payload = json.loads(str(msg.payload, 'utf-8'))
         except:
             action_payload = None
+
         action = {
             "type": action_type,
             "payload": action_payload,

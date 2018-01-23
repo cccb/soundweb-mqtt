@@ -3,20 +3,37 @@
 Connect to a soundweb device via serial
 """
 
+import time
+
 import serial
 
 import message
 
 def connect(path):
     """Open a serial connection"""
-    conn = serial.Serial(path, baudrate=38400)
+    conn = serial.Serial(path, baudrate=38400, timeout=1)
 
     return conn
 
 
-def send(conn, buf):
+def send(conn, buf, retry=3):
     """Send encoded messge"""
-    return conn.write(buf)
+    if retry == 0:
+        print("Giving up. Could not send message.")
+        return
+
+    ret = conn.write(buf)
+    if ret != len(buf):
+        print("Wrote {} to serial, expected {}.".format(ret, len(buf)))
+        time.sleep(1)
+        send(conn, buf, retry - 1)
+
+    # Wait for ACK or NAC
+    recv = conn.read()
+    if recv == message.NAC:
+        print("Received NAC from device. Trying to resend the message.")
+        time.sleep(1)
+        send(conn, buf, retry - 1)
 
 
 def receive(conn):
@@ -33,11 +50,11 @@ def receive(conn):
         elif recv == message.ETX
             try:
                 body = message.decode_message_body(buf)
-                send(conn, message.ACK)
+                conn.write(message.ACK)
 
                 return body
-            except message.ChecksumError:
-                send(conn, message.NAK)
+            except message.MessageError:
+                conn.write(message.NAK)
 
         # State / Responses
         elif recv == message.ACK:

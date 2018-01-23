@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Everything should happen relative to the application path
+BASE_DIR=$(dirname $0)/../
+cd $BASE_DIR
+
+VIRTUAL_BASE=venv/
+
+# Activate
+source $VIRTUAL_BASE/bin/activate
+
+exec $@
+
+

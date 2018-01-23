@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Everything should happen relative to the application path
+BASE_DIR=$(dirname $0)/../
+cd $BASE_DIR
+
+VIRTUAL_BASE=venv/
+
+if [ ! -d $VIRTUAL_BASE ]; then
+    echo "Virtualenv is missing. Creating..."
+    python3 -m venv $VIRTUAL_BASE
+fi
+
+# Activate
+source $VIRTUAL_BASE/bin/activate
+
+# Update requirements
+pip3 install -r requirements.txt
+
+
+

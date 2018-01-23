@@ -26,27 +26,59 @@ SW_AMX_SOURCE = 6
 SW_AMX_TEXT = 7
 
 
+class MessageError(Exception):
+    pass
+
+class ChecksumError(Exception):
+    pass
+
+
+
+def decode_message_body(buf):
+    """Decode bytes received"""
+    if len(buf) < 2:
+        # Message must at least have a byte + checksum
+        raise MessageError()
+
+    # Remove checksum
+    buf_checksum = buf[-1]
+    buf = buf[:-1]
+
+    # Decode message
+    message = b''
+    is_escaped = False
+    for c in buf:
+        if c == ESC:
+            is_escaped = True
+            continue
+        res = c
+        if is_escaped:
+            res = c - 128
+            is_escaped = False
+
+        message += res
+
+    # Calculate body checksum
+    checksum = 0
+    for c in message:
+        checksum ^= c
+
+    if checksum != buf_checksum:
+        raise ChecksumError()
+
+    return message
+
+
 def _encode_body_char(char):
-    char = char.to_bytes(1, 'big')
+    """Escape chars"""
+    if char.to_bytes(1, 'big') in [STX, ETX, ACK, NAK, ESC]:
+        # Substitute byte with escape sequence, if reqired
+        return ESC + (char + 128).to_bytes(1, 'big')
 
-    # Substitute special chars
-    special = {
-        STX: ESC + b'\x82',
-        ETX: ESC + b'\x83',
-        ACK: ESC + b'\x86',
-        NAK: ESC + b'\x95',
-        ESC: ESC + b'\x9b',
-    }
-
-    # Substitute byte with escape sequence, if reqired
-    subst = special.get(char)
-    if subst:
-        return subst
-
-    return char
+    return char.to_bytes(1, 'big')
 
 
-def _encode_message_body(body):
+def encode_message_body(body):
     """
     Encode message body, escape chars
     """
@@ -64,14 +96,14 @@ def _encode_message_body(body):
     return body_buffer
 
 
-def _encode_message(body):
+def encode_message(body):
     """
     Encode a complete message
     """
     # Start message
     msg_buffer = STX
     # Add body
-    msg_buffer += _encode_message_body(body)
+    msg_buffer += encode_message_body(body)
     # End message
     msg_buffer += ETX
 
@@ -85,7 +117,7 @@ def set_value(control_group, control_id, value):
               control_id.to_bytes(1, 'big') + \
               value.to_bytes(2, 'big')
 
-    return _encode_message(message)
+    return encode_message(message)
 
 
 def set_string(control_group, control_id, string):
@@ -96,7 +128,7 @@ def set_string(control_group, control_id, string):
               string.encode('utf-8') + \
               b'\x00'
 
-    return _encode_message(message)
+    return encode_message(message)
 
 
 def request_value(control_group, control_id):
@@ -105,7 +137,7 @@ def request_value(control_group, control_id):
               control_group.to_bytes(1, 'big') + \
               control_id.to_bytes(1, 'big')
 
-    return _encode_message(message)
+    return encode_message(message)
 
 
 def request_string(control_group, control_id):
@@ -114,4 +146,5 @@ def request_string(control_group, control_id):
               control_group.to_bytes(1, 'big') + \
               control_id.to_bytes(1, 'big')
 
-    return _encode_message(message)
+    return encode_message(message)
+

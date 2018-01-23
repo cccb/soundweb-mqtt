@@ -33,7 +33,6 @@ class ChecksumError(Exception):
     pass
 
 
-
 def decode_message_body(buf):
     """Decode bytes received"""
     if len(buf) < 2:
@@ -48,7 +47,7 @@ def decode_message_body(buf):
     message = b''
     is_escaped = False
     for c in buf:
-        if c == ESC:
+        if c.to_bytes(1, 'big') == ESC:
             is_escaped = True
             continue
         res = c
@@ -56,7 +55,8 @@ def decode_message_body(buf):
             res = c - 128
             is_escaped = False
 
-        message += res
+        message += res.to_bytes(1, 'big')
+
 
     # Calculate body checksum
     checksum = 0

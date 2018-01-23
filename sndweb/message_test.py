@@ -14,6 +14,19 @@ def test_encode_message_body():
     assert message.encode_message_body(body) == expected
 
 
+def test_decode_message_body():
+    # Without substitutions
+    body = b'\x23\x42\x00\xff'
+    encoded = message.encode_message_body(body)
+    assert body == message.decode_message_body(encoded)
+
+    # With escaped chars
+    body = b'\xfa\x02\x03\xff'
+    encoded = message.encode_message_body(body)
+    assert body == message.decode_message_body(encoded)
+
+
+
 def test_encode_message():
 
     body = b'\x23\x02\x03\xff'

@@ -7,7 +7,7 @@ import time
 
 import serial
 
-import message
+from sndweb import message
 
 def connect(path):
     """Open a serial connection"""
@@ -28,9 +28,9 @@ def send(conn, buf, retry=3):
         time.sleep(1)
         send(conn, buf, retry - 1)
 
-    # Wait for ACK or NAC
+    # Wait for ACK or NAK
     recv = conn.read()
-    if recv == message.NAC:
+    if recv == message.NAK:
         print("Received NAC from device. Trying to resend the message.")
         time.sleep(1)
         send(conn, buf, retry - 1)
@@ -42,18 +42,22 @@ def receive(conn):
 
     while True:
         recv = conn.read() # Read bytewise
+        # if recv:
+        #    print("0x%x " % (recv[0]), end="")
+
         # Begin of transmission
         if recv == message.STX:
-            buf = b'' # Clear message buffer
+           buf = b'' # Clear message buffer
 
         # End of transmission
-        elif recv == message.ETX
+        elif recv == message.ETX:
+            # print("")
             try:
                 body = message.decode_message_body(buf)
                 conn.write(message.ACK)
 
                 return body
-            except message.MessageError:
+            except message.MessageError as e:
                 conn.write(message.NAK)
 
         # State / Responses

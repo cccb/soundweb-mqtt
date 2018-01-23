@@ -1,4 +1,7 @@
 
+venv/
+
+
 *.swp
 *.swo
 

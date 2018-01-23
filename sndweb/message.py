@@ -29,7 +29,7 @@ SW_AMX_TEXT = 7
 class MessageError(Exception):
     pass
 
-class ChecksumError(Exception):
+class ChecksumError(MessageError):
     pass
 
 

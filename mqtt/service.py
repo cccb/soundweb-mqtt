@@ -21,7 +21,7 @@ def _make_message_handler(actions):
         try:
             action_payload = json.loads(msg.payload)
         except:
-            action_payload = {}
+            action_payload = None
         action = {
             "type": action_type,
             "payload": action_payload,
@@ -32,6 +32,33 @@ def _make_message_handler(actions):
     return _on_message
 
 
+def _make_action_generator(actions):
+    """Convenient generator for handling actions"""
+    while True:
+        try:
+            action = actions.get(timeout=1)
+        except queue.Empty:
+            action = None
+
+        if not action:
+            print(">> Foo")
+        else:
+            yield action
+
+
+def _make_dispatch(client, base_topic):
+    """Create dispatch function"""
+    def dispatch(action):
+        payload = json.dumps(action.get("payload")).encode("utf-8")
+        topic = base_topic + "/" + action["type"]
+
+        ticket = client.publish(topic, payload)
+        ticket.wait_for_publish()
+
+
+    return dispatch
+
+
 def connect(address, base_topic):
     """Open connection, subscribe and create dispatch"""
     try:
@@ -40,10 +67,10 @@ def connect(address, base_topic):
         host = address
         port = 1883
 
-    actions = queue.Queue()
+    actions_queue = queue.Queue()
 
     client = mqtt.Client()
-    client.on_message = _make_message_handler(actions)
+    client.on_message = _make_message_handler(actions_queue)
     client.connect(host, int(port), 60)
     client.subscribe("{}/#".format(base_topic))
 
@@ -51,27 +78,20 @@ def connect(address, base_topic):
     # block our main application.
     client.loop_start()
 
+    # Create actions generator
+    actions = _make_action_generator(actions_queue)
+
     # Create dispatch function
+    dispatch = _make_dispatch(client, base_topic)
 
-
-    return actions
+    return actions, dispatch
 
 
 if __name__ == "__main__":
-    actions = connect("localhost", "fnord")
+    actions, dispatch = connect("localhost", "fnord")
+    dispatch({"type": "FOO"})
 
-
-    while True:
-        try:
-            action = actions.get(block=False)
-        except queue.Empty:
-            action = None
-
-        if not action:
-            print(">> Foo")
-        else:
-            print(">> Incoming:")
-            print(action)
-
-        time.sleep(1)
+    for action in actions:
+        print("Incoming:")
+        print(action)
 

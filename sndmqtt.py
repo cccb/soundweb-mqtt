@@ -43,9 +43,25 @@ def _setup_logging(level):
     logging.debug("initialized logging")
 
 
-def _handle_message(dispatch, message):
+#
+# Message and Action handling
+#
+def _handle_message(dispatch, msg):
     """Handle incoming messages from soundweb device"""
-    logging.debug("Received soundweb message: {}".format(message))
+    logging.debug("Received soundweb message: {}".format(msg))
+
+    if msg["type"] == message.SET_VALUE:
+        _handle_soundweb_set_value(dispatch,
+                                   msg["payload"]["group"],
+                                   msg["payload"]["control"]
+                                   msg["payload"]["value"])
+
+
+def _handle_soundweb_set_value(dispatch, group, control, value):
+    """Handle incoming changes"""
+    if group == messages.SW_AMX_LEVEL:
+        dispatch(actions.set_level_success(control, value))
+
 
 
 def _handle_action(dispatch, send, action):
@@ -67,7 +83,7 @@ def _handle_action(dispatch, send, action):
 def main(args):
     """Soundweb to MQTT bridge"""
     # Show welcome message
-    print("Soundweb to MQTT                  v.0.1.0")
+    print("Soundweb to MQTT                                  v.0.1.0")
 
     # Setup logging
     _setup_logging(args.log_level)

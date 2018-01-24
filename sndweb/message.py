@@ -33,6 +33,7 @@ class ChecksumError(MessageError):
     pass
 
 
+
 def decode_message_body(buf):
     """Decode bytes received"""
     if len(buf) < 2:
@@ -68,6 +69,39 @@ def decode_message_body(buf):
 
     return message
 
+
+def decode_message(body):
+    """Decode message, create object from message"""
+    message_type = body[:1]
+    msg = {
+        "type": message_type,
+        "payload": _decode_payload(message_type, body),
+    }
+
+    return msg
+
+def _decode_payload(message_type, body):
+    if message_type == SET_VALUE:
+        return _decode_set_value(body)
+    elif message_type == SET_STRING:
+        return _decode_set_string(body)
+
+    return None
+
+
+def _decode_set_value(body):
+    group = body[1:2]
+    control = body[2]
+    value = int.from_bytes(body[3:5])
+
+    return {
+        "group": group,
+        "value": value,
+    }
+
+
+def _decode_set_string(body):
+    return "Implement Me"
 
 def _encode_body_char(char):
     """Escape chars"""

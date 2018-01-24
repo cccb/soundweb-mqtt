@@ -77,7 +77,8 @@ def _receive(conn, tx):
 
                 yield body
             except message.MessageError as e:
-                conn.write(message.NAK)
+                # conn.write(message.NAK)
+                pass
 
         # State / Responses
         elif recv == message.ACK:
@@ -87,4 +88,6 @@ def _receive(conn, tx):
         else:
             # Just append the received byte
             buf += recv
+
+        yield None
 

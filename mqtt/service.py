@@ -6,6 +6,7 @@ MQTT service
 import time
 import queue
 import json
+import logging
 
 import paho.mqtt.client as mqtt
 
@@ -31,20 +32,6 @@ def _make_message_handler(actions):
         actions.put(action)
 
     return _on_message
-
-
-def _make_action_generator(actions):
-    """Convenient generator for handling actions"""
-    while True:
-        try:
-            action = actions.get(timeout=1)
-        except queue.Empty:
-            action = None
-
-        if not action:
-            print(">> Foo")
-        else:
-            yield action
 
 
 def _make_dispatch(client, base_topic):
@@ -86,12 +73,11 @@ def connect(address, base_topic):
     client.connect(host, int(port), 60)
     client.subscribe("{}/#".format(base_topic))
 
+    logging.info("Receiving actions on topic {}/#".format(base_topic))
+
     # Start client in dedicated thread. Do not
     # block our main application.
     client.loop_start()
-
-    # Create actions generator
-    # actions = _make_action_generator(actions_queue)
 
     # Make receive function
     receive = _make_receive(actions_queue)
@@ -100,5 +86,4 @@ def connect(address, base_topic):
     dispatch = _make_dispatch(client, base_topic)
 
     return receive, dispatch
-
 

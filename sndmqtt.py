@@ -99,14 +99,10 @@ def main(args):
 
     logging.info("Serial and MQTT connected")
 
-
     # Main loop
     for msg in receive():
         # Check for incoming serial data
         if msg:
-            print("Received soundweb:")
-            print(msg)
-
             # Handle message
             _handle_message(dispatch, msg)
 

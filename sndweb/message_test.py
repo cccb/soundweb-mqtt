@@ -64,3 +64,14 @@ def test_set_string():
 
     assert msg[0] == message.STX[0]
     assert msg[1] == 0x81
+
+
+def test_decode_message():
+    body = b'\x80\x05\x02\x00\xf0'
+    msg = message.decode_message(body)
+
+    assert msg["type"] == message.SET_VALUE
+    assert msg["payload"]["group"] == message.SW_AMX_LEVEL
+    assert msg["payload"]["control"] == 2
+    assert msg["payload"]["value"] == 0xf0
+

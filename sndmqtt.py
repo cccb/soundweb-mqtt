@@ -94,6 +94,7 @@ def main(args):
     """Soundweb to MQTT bridge"""
     # Show welcome message
     print("Soundweb to MQTT                                  v.0.1.0")
+    print()
 
     # Setup logging
     _setup_logging(args.log_level)

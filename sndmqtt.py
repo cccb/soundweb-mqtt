@@ -6,7 +6,6 @@ from sndweb import connection, message
 from mqtt import service, actions
 
 
-
 def parse_args():
     """Parse CLI arguments"""
     parser = argparse.ArgumentParser()
@@ -55,7 +54,8 @@ def _handle_message(dispatch, msg):
                                    msg["payload"]["group"],
                                    msg["payload"]["id"],
                                    msg["payload"]["value"])
-    if msg["type"] == message.SET_TEXT:
+
+    elif msg["type"] == message.SET_TEXT:
         _handle_soundweb_set_text(dispatch,
                                   msg["payload"]["group"],
                                   msg["payload"]["id"],
@@ -111,13 +111,13 @@ def main(args):
     for msg in receive():
         # Check for incoming serial data
         if msg:
-            # Handle message
+            # Handle incoming soundweb message
             _handle_message(dispatch, msg)
 
         # Check if there are MQTT actions
         action = receive_action()
         if action:
-            # Handle action
+            # Handle MQTT action
             _handle_action(dispatch, send, action)
 
 

@@ -105,7 +105,7 @@ def _decode_set_value(body):
 def _decode_set_string(body):
     group = body[1]
     control_id = body[2]
-    value = body[3:].decode('utf-8')
+    value = body[3:-1].decode('utf-8') # Strip trailing null char
 
     return {
         "group": group,
@@ -123,7 +123,7 @@ def _encode_body_char(char):
     return char.to_bytes(1, 'big')
 
 
-def encode_message_body(body):
+def encode_body(body):
     """
     Encode message body, escape chars
     """
@@ -148,7 +148,7 @@ def encode_message(body):
     # Start message
     msg_buffer = STX
     # Add body
-    msg_buffer += encode_message_body(body)
+    msg_buffer += encode_body(body)
     # End message
     msg_buffer += ETX
 

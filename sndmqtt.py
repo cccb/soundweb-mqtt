@@ -40,7 +40,7 @@ def _setup_logging(level):
     root = logging.getLogger()
     root.setLevel(log_level)
 
-    logging.debug("initialized logging")
+    logging.debug("Initialized logging")
 
 
 #
@@ -53,17 +53,25 @@ def _handle_message(dispatch, msg):
     if msg["type"] == message.SET_VALUE:
         _handle_soundweb_set_value(dispatch,
                                    msg["payload"]["group"],
-                                   msg["payload"]["control"],
+                                   msg["payload"]["id"],
                                    msg["payload"]["value"])
+    if msg["type"] == message.SET_TEXT:
+        _handle_soundweb_set_text(dispatch,
+                                  msg["payload"]["group"],
+                                  msg["payload"]["id"],
+                                  msg["payload"]["value"])
 
 
-def _handle_soundweb_set_value(dispatch, group, control, value):
+def _handle_soundweb_set_value(dispatch, group, control_id, value):
     """Handle incoming changes"""
     if group == messages.SW_AMX_LEVEL:
         logging.info("Publishing set level(id={}, value={}) update".format(
-            control, value))
-        dispatch(actions.set_level_success(control, value))
+            control_id, value))
+        dispatch(actions.set_level_success(control_id, value))
 
+
+def _handle_soundweb_set_text(dispatch, group, control_id, value):
+    pass
 
 
 def _handle_action(dispatch, send, action):

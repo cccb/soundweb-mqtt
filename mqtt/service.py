@@ -60,6 +60,17 @@ def _make_dispatch(client, base_topic):
     return dispatch
 
 
+def _make_receive(actions):
+    """Create receive action function"""
+    def receive():
+        try:
+            return actions.get(block=False)
+        except queue.Empty:
+            return None
+
+    return receive
+
+
 def connect(address, base_topic):
     """Open connection, subscribe and create dispatch"""
     try:
@@ -80,11 +91,14 @@ def connect(address, base_topic):
     client.loop_start()
 
     # Create actions generator
-    actions = _make_action_generator(actions_queue)
+    # actions = _make_action_generator(actions_queue)
+
+    # Make receive function
+    receive = _make_receive(actions_queue)
 
     # Create dispatch function
     dispatch = _make_dispatch(client, base_topic)
 
-    return actions, dispatch
+    return receive, dispatch
 
 

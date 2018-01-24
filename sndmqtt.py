@@ -44,34 +44,42 @@ def _setup_logging(level):
 
 
 def _handle_message(dispatch, message):
-    pass
+    """Handle incoming messages from soundweb device"""
+    logging.debug("Received soundweb message: {}".format(message))
 
 
 def _handle_action(dispatch, send, action):
+    logging.debug("Received action: {}".format(action))
+
     if action["type"] == actions.SET_LEVEL_REQUEST:
         level_id = action["payload"].get("level_id")
         value = action["payload"].get("value")
 
+        logging.info("Setting level (id={}) to {}".format(level_id, value))
+
+        # Set value at device
         send(message.set_value(message.SW_AMX_LEVEL, level_id, value))
 
-        # Todo error handling
+        # For now assume everything went fine
+        dispatch(actions.set_level_success(level_id, value))
 
 
 def main(args):
     """Soundweb to MQTT bridge"""
+    # Show welcome message
+    print("Soundweb to MQTT                  v.0.1.0")
+
     # Setup logging
     _setup_logging(args.log_level)
 
-    return
-
     # Connect to soundweb
-    receive, send = connection.connect("/dev/tty.usbserial")
+    receive, send = connection.connect(args.serial)
 
     # Connect to MQTT broker
-    receive_action, dispatch = service.connect("localhost", "fnord")
+    receive_action, dispatch = service.connect(args.broker,
+                                               args.topic)
 
-    # Show welcome message
-    print("Soundweb to MQTT                  v.0.1.0")
+    logging.info("Serial and MQTT connected")
 
 
     # Main loop
@@ -87,9 +95,6 @@ def main(args):
         # Check if there are MQTT actions
         action = receive_action()
         if action:
-            print("Received action:")
-            print(action)
-
             # Handle action
             _handle_action(dispatch, send, action)
 

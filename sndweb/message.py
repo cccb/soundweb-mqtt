@@ -80,6 +80,7 @@ def decode_message(body):
 
     return msg
 
+
 def _decode_payload(message_type, body):
     if message_type == SET_VALUE:
         return _decode_set_value(body)
@@ -96,12 +97,14 @@ def _decode_set_value(body):
 
     return {
         "group": group,
+        "control": control,
         "value": value,
     }
 
 
 def _decode_set_string(body):
     return "Implement Me"
+
 
 def _encode_body_char(char):
     """Escape chars"""

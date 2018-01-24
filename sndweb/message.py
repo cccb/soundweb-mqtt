@@ -34,7 +34,7 @@ class ChecksumError(MessageError):
 
 
 
-def decode_message_body(buf):
+def decode_body(buf):
     """Decode bytes received"""
     if len(buf) < 2:
         # Message must at least have a byte + checksum
@@ -92,18 +92,26 @@ def _decode_payload(message_type, body):
 
 def _decode_set_value(body):
     group = body[1]
-    control = body[2]
+    control_id = body[2]
     value = int.from_bytes(body[3:5], "big")
 
     return {
         "group": group,
-        "control": control,
+        "id": control_id,
         "value": value,
     }
 
 
 def _decode_set_string(body):
-    return "Implement Me"
+    group = body[1]
+    control_id = body[2]
+    value = body[3:].decode('utf-8')
+
+    return {
+        "group": group,
+        "id": control_id,
+        "value": value,
+    }
 
 
 def _encode_body_char(char):

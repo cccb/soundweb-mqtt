@@ -3,8 +3,10 @@
 Connect to a soundweb device via serial
 """
 
+import sys
 import time
 import queue
+import logging
 
 import serial
 
@@ -12,7 +14,12 @@ from sndweb import message
 
 def connect(path):
     """Open a serial connection"""
-    conn = serial.Serial(path, baudrate=38400, timeout=1/30)
+    try:
+        conn = serial.Serial(path, baudrate=38400, timeout=1/30)
+    except serial.serialutil.SerialException as e:
+        logging.error(str(e))
+        sys.exit(-1)
+
 
     # Create tx queue
     tx = queue.Queue()
@@ -31,19 +38,20 @@ def connect(path):
 def _send(conn, buf, retry=3):
     """Send encoded messge"""
     if retry == 0:
-        print("Giving up. Could not send message.")
+        logging.warning("Giving up. Could not send message.")
         return
 
     ret = conn.write(buf)
     if ret != len(buf):
-        print("Wrote {} to serial, expected {}.".format(ret, len(buf)))
+        logging.debug("Wrote {} to serial, expected {}.".format(ret, len(buf)))
         time.sleep(1)
         send(conn, buf, retry - 1)
 
     # Wait for ACK or NAK
     recv = conn.read()
     if recv == message.NAK:
-        print("Received NAC from device. Trying to resend the message.")
+        logging.warning("Received NAC from device. "
+                        "Trying to resend the message.")
         time.sleep(1)
         send(conn, buf, retry - 1)
 
@@ -86,5 +94,5 @@ def _receive(conn, tx):
             # Just append the received byte
             buf += recv
 
-        yield None
+        yield None # Nothing happend, keep the main loop alive.
 

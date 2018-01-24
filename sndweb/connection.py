@@ -61,24 +61,21 @@ def _receive(conn, tx):
             except queue.Empty:
                 pass
 
-        # if recv:
-        #    print("0x%x " % (recv[0]), end="")
-
         # Begin of transmission
         if recv == message.STX:
            buf = b'' # Clear message buffer
 
         # End of transmission
         elif recv == message.ETX:
-            # print("")
             try:
-                body = message.decode_message_body(buf)
+                body = message.decode_body(buf)
                 conn.write(message.ACK)
 
-                yield body
+                yield message.decode_message(body)
+
             except message.MessageError as e:
-                # conn.write(message.NAK)
-                pass
+                time.sleep(0.5) # Ratelimiting
+                conn.write(message.NAK)
 
         # State / Responses
         elif recv == message.ACK:

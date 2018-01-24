@@ -53,13 +53,15 @@ def _handle_message(dispatch, msg):
     if msg["type"] == message.SET_VALUE:
         _handle_soundweb_set_value(dispatch,
                                    msg["payload"]["group"],
-                                   msg["payload"]["control"]
+                                   msg["payload"]["control"],
                                    msg["payload"]["value"])
 
 
 def _handle_soundweb_set_value(dispatch, group, control, value):
     """Handle incoming changes"""
     if group == messages.SW_AMX_LEVEL:
+        logging.info("Publishing set level(id={}, value={}) update".format(
+            control, value))
         dispatch(actions.set_level_success(control, value))
 
 

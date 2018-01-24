@@ -88,11 +88,3 @@ def connect(address, base_topic):
     return actions, dispatch
 
 
-if __name__ == "__main__":
-    actions, dispatch = connect("localhost", "fnord")
-    dispatch({"type": "FOO"})
-
-    for action in actions:
-        print("Incoming:")
-        print(action)
-

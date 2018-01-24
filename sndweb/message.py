@@ -93,7 +93,7 @@ def _decode_payload(message_type, body):
 def _decode_set_value(body):
     group = body[1:2]
     control = body[2]
-    value = int.from_bytes(body[3:5])
+    value = int.from_bytes(body[3:5], "big")
 
     return {
         "group": group,

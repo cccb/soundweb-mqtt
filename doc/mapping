@@ -1,0 +1,21 @@
+
+MASTER: LEVEL, id: 1
+DELAY:  LEVEL, id: 3, 4    CenterValue: 192
+BASS:   LEVEL, id: 5       CenterValue: 192
+
+BAR:    LEVEL, id: 2,      CenterValue: 192
+
+
+Source: SOURCE, id: 2 (Links) & 7 (Rechts)   
+                Values: None: 0 
+                        0 .. 4
+
+MuteMaster: TOGGLE
+            id: 1,
+
+
+MuteDelay: TOGGLE, id: 13
+
+MuteBar: TOGGLE, id: 12
+
+

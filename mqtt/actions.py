@@ -17,6 +17,14 @@ GET_TOGGLE_SUCCESS = 'GET_TOGGLE_SUCCESS'
 GET_TOGGLES_REQUEST = 'GET_TOGGLES_REQUEST'
 GET_TOGGLES_SUCCESS = 'GET_TOGGLES_SUCCESS'
 
+SET_SOURCE_REQUEST = 'SET_SOURCE_REQUEST'
+SET_SOURCE_SUCCESS = 'SET_SOURCE_SUCCESS'
+
+GET_SOURCE_REQUEST = 'GET_SOURCE_REQUEST'
+GET_SOURCE_SUCCESS = 'GET_SOURCE_SUCCESS'
+
+GET_SOURCES_REQUEST = 'GET_SOURCES_REQUEST'
+GET_SOURCES_SUCCESS = 'GET_SOURCES_SUCCESS'
 
 
 def set_level_success(level_id, value):
@@ -75,4 +83,24 @@ def get_toggles_success(toggles):
         "type": GET_TOGGLE_SUCCESS,
         "payload": level_values,
     }
+
+
+def get_source_success(source_id, value):
+    return {
+        "type": GET_SOURCE_SUCCESS,
+        "payload": {
+            "id": source_id,
+            "value": value,
+        }
+    }
+
+
+def get_sources_success(sources):
+    sources_values = [{"id": k, "value": v} for k, v in sources.items()]
+
+    return {
+        "type": GET_SOURCES_SUCCESS,
+        "payload": sources_values,
+    }
+
 

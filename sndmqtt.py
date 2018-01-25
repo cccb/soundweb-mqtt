@@ -1,6 +1,7 @@
 
 import argparse
 import logging
+import copy
 
 from sndweb import connection, message
 from mqtt import service, actions
@@ -46,40 +47,56 @@ def _setup_logging(level):
 #
 # Message and Action handling
 #
-def _handle_message(dispatch, msg):
+def _handle_message(dispatch, state, msg):
     """Handle incoming messages from soundweb device"""
     logging.debug("Received soundweb message: {}".format(msg))
+    state = copy.deepcopy(state)
 
     if msg["type"] == message.SET_VALUE:
-        _handle_soundweb_set_value(dispatch,
-                                   msg["payload"]["group"],
-                                   msg["payload"]["id"],
-                                   msg["payload"]["value"])
+        state = _handle_soundweb_set_value(dispatch,
+                                           state,
+                                           msg["payload"]["group"],
+                                           msg["payload"]["id"],
+                                           msg["payload"]["value"])
 
     elif msg["type"] == message.SET_TEXT:
-        _handle_soundweb_set_text(dispatch,
-                                  msg["payload"]["group"],
-                                  msg["payload"]["id"],
-                                  msg["payload"]["value"])
+        state = _handle_soundweb_set_text(dispatch,
+                                          state,
+                                          msg["payload"]["group"],
+                                          msg["payload"]["id"],
+                                          msg["payload"]["value"])
+
+    return state
 
 
-def _handle_soundweb_set_value(dispatch, group, control_id, value):
+def _handle_soundweb_set_value(dispatch, state, group, control_id, value):
     """Handle incoming changes"""
     if group == message.SW_AMX_LEVEL:
         logging.info("Publishing set level(id={}, value={}) update".format(
             control_id, value))
         dispatch(actions.set_level_success(control_id, value))
+        state["levels"][control_id] = value
+
+    elif group == message.SW_AMX_TOGGLE:
+        logging.info("Publishing set toggle(id={}, value={}) update".format(
+            control_id, value))
+
+        dispatch(actions.set_toggle_success(control_id, value))
+        state["toggles"][control_id] = (value == 1)
+
+    return state
 
 
-def _handle_soundweb_set_text(dispatch, group, control_id, value):
+def _handle_soundweb_set_text(dispatch, state, group, control_id, value):
     pass
 
 
-def _handle_action(dispatch, send, action):
+def _handle_action(dispatch, send, state, action):
     logging.debug("Received action: {}".format(action))
+    state = copy.deepcopy(state)
 
     if action["type"] == actions.SET_LEVEL_REQUEST:
-        level_id = action["payload"].get("level_id")
+        level_id = action["payload"].get("id")
         value = action["payload"].get("value")
 
         logging.info("Setting level (id={}) to {}".format(level_id, value))
@@ -89,6 +106,45 @@ def _handle_action(dispatch, send, action):
 
         # For now assume everything went fine
         dispatch(actions.set_level_success(level_id, value))
+
+        state["levels"][level_id] = value
+
+    elif action["type"] == actions.GET_LEVEL_REQUEST:
+        level_id = action["payload"].get("id")
+        value = state["levels"][level_id]
+
+        dispatch(actions.get_level_succes(level_id, value))
+
+    elif action["type"] == actions.GET_LEVELS_REQUEST:
+        dispatch(actions.get_levels_success(state["levels"]))
+
+    elif action["type"] == actions.SET_TOGGLE_REQUEST:
+        toggle_id = action["payload"].get("id")
+        value = action["payload"].get("value")
+
+        logging.info("Setting toggle (id={}) to {}".format(toggle_id, value))
+
+        # Set at device
+        send(message.set_value(message.SW_AMX_TOGGLE, toggle_id, value))
+
+        # Inform other devices
+        dispatch(actions.set_toggle_success(toggle_id, value))
+
+        # Update state
+        state["toggles"][toggle_id] = value
+
+    elif action["type"] == actions.GET_TOGGLE_REQUEST:
+        toggle_id = action["payload"].get("id")
+
+        dispatch(actions.get_toggle_success(toggle_id,
+                                            state["toggles"][toggle_id]))
+
+
+    elif action["type"] == actions.GET_TOGGLES_REQUEST:
+        dispatch(actions.get_toggles_success(state["toggles"]))
+
+
+    return state
 
 
 def main(args):
@@ -109,18 +165,24 @@ def main(args):
 
     logging.info("Serial and MQTT connected")
 
+    # Make initial states
+    state = {
+        "levels": {},
+        "toggles": {},
+    }
+
     # Main loop
     for msg in receive():
         # Check for incoming serial data
         if msg:
             # Handle incoming soundweb message
-            _handle_message(dispatch, msg)
+            state = _handle_message(dispatch, state, msg)
 
         # Check if there are MQTT actions
         action = receive_action()
         if action:
             # Handle MQTT action
-            _handle_action(dispatch, send, action)
+            state = _handle_action(dispatch, send, state, action)
 
 
 if __name__ == "__main__":

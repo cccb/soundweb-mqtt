@@ -38,7 +38,7 @@ def decode_body(buf):
     """Decode bytes received"""
     if len(buf) < 2:
         # Message must at least have a byte + checksum
-        raise MessageError()
+        raise MessageError("body length too short")
 
     # Remove checksum
     buf_checksum = buf[-1]
@@ -64,8 +64,8 @@ def decode_body(buf):
     for c in message:
         checksum ^= c
 
-    if checksum != buf_checksum:
-        raise ChecksumError()
+    # if checksum != buf_checksum:
+    #    raise ChecksumError("invalid checksum")
 
     return message
 

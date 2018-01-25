@@ -37,6 +37,7 @@ def connect(path):
 
 def _send(conn, buf, retry=3):
     """Send encoded messge"""
+    logging.debug("Starting TX, sending: {}".format(buf))
     if retry == 0:
         logging.warning("Giving up. Could not send message.")
         return
@@ -47,8 +48,12 @@ def _send(conn, buf, retry=3):
         time.sleep(1)
         send(conn, buf, retry - 1)
 
+    conn.flush()
+
     # Wait for ACK or NAK
     recv = conn.read()
+    logging.debug("Received {} after send()".format(recv))
+
     if recv == message.NAK:
         logging.warning("Received NAC from device. "
                         "Trying to resend the message.")
@@ -64,10 +69,18 @@ def _receive(conn, tx):
         recv = conn.read() # Read bytewise
         if not recv:
             try:
+                # logging.debug("Receive timeout, trying sending")
                 msg = tx.get(block=False)
                 _send(conn, msg)
+                yield None
+                continue
+
             except queue.Empty:
-                pass
+                # logging.debug("Nothing to send")
+                yield None
+                continue
+
+        logging.debug("Received {} from soundweb".format(recv))
 
         # Begin of transmission
         if recv == message.STX:
@@ -75,21 +88,24 @@ def _receive(conn, tx):
 
         # End of transmission
         elif recv == message.ETX:
+            logging.debug("Received message: {}".format(buf))
             try:
                 body = message.decode_body(buf)
                 conn.write(message.ACK)
+                logging.debug("ACKed received message")
 
                 yield message.decode_message(body)
 
             except message.MessageError as e:
+                logging.warning(e)
                 time.sleep(0.5) # Ratelimiting
                 conn.write(message.NAK)
 
         # State / Responses
         elif recv == message.ACK:
-            yield message.ACK
+            logging.warning("Received unexpected ACK")
         elif recv == message.NAK:
-            yield message.NAK
+            logging.warning("Received unexpected NAK")
         else:
             # Just append the received byte
             buf += recv

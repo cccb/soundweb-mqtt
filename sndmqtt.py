@@ -38,6 +38,7 @@ def _setup_logging(level):
 
     root = logging.getLogger()
     root.setLevel(log_level)
+    root.name = "sndmqtt"
 
     logging.debug("Initialized logging")
 
@@ -64,7 +65,7 @@ def _handle_message(dispatch, msg):
 
 def _handle_soundweb_set_value(dispatch, group, control_id, value):
     """Handle incoming changes"""
-    if group == messages.SW_AMX_LEVEL:
+    if group == message.SW_AMX_LEVEL:
         logging.info("Publishing set level(id={}, value={}) update".format(
             control_id, value))
         dispatch(actions.set_level_success(control_id, value))

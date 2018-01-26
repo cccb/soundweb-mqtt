@@ -121,7 +121,7 @@ def _handle_action(dispatch, send, state, action):
         level_id = action["payload"]["id"]
         try:
             value = state["levels"][level_id]
-            dispatch(actions.get_level_succes(level_id, value))
+            dispatch(actions.get_level_success(level_id, value))
         except KeyError:
             dispatch(actions.get_level_error(level_id, "404 unknown id"))
 

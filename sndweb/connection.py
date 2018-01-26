@@ -14,6 +14,13 @@ from sndweb import message
 
 def connect(path):
     """Open a serial connection"""
+    if path.upper() == "DEBUG":
+        logging.info("Not connecting to soundweb. No serial port provided")
+        logging.info("Providing debug mocks for soundweb interface")
+
+        return _connect_debug()
+
+    # Open real connection
     try:
         conn = serial.Serial(path, baudrate=38400, timeout=1/30)
     except serial.serialutil.SerialException as e:
@@ -33,6 +40,20 @@ def connect(path):
         return _receive(conn, tx)
 
     return receive, send
+
+
+def _connect_debug():
+    """Do not use serial port, just provide some debugging helpers"""
+    def mock_send(msg):
+        logging.debug("SERIAL TX: {}".format(msg))
+        pass
+
+    def mock_receive():
+        while True:
+            yield
+            time.sleep(1)
+
+    return mock_receive, mock_send
 
 
 def _send(conn, buf, retry=3):

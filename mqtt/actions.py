@@ -134,7 +134,7 @@ def get_toggles_success(toggles):
     level_values = [{"id": k, "value": v} for k, v in toggles.items()]
 
     return {
-        "type": GET_TOGGLE_SUCCESS,
+        "type": GET_TOGGLES_SUCCESS,
         "payload": level_values,
     }
 

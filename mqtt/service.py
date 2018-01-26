@@ -9,31 +9,31 @@ import json
 import logging
 import functools
 
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as paho_mqtt
+
+import mqtt.decoders as decoders
+import mqtt.actions as mqtt_actions
 
 
 def _on_message(actions, _client, _obj, msg):
     """Handle incoming messages from MQTT"""
-    tokens = msg.topic.split("/")
-
-    # Receive and decode, publish in queue
-    action_type = tokens[-1]
     try:
-        action_payload = json.loads(str(msg.payload, 'utf-8'))
-    except:
-        action_payload = None
-
-    action = {
-        "type": action_type,
-        "payload": action_payload,
-    }
+        action = decoders.decode_action(msg.topic, msg.payload)
+    except decoders.DecodeMessageError as e:
+        logging.warning("Could not decode incoming message: {}".format(e))
+        action = mqtt_actions.message_decode_error_result(msg.topic, msg.payload, e)
 
     actions.put(action)
 
 
 def _dispatch(client, base_topic, action):
     """General action dispatch function"""
-    payload = json.dumps(action.get("payload")).encode("utf-8")
+    try:
+        payload = json.dumps(action.get("payload")).encode("utf-8")
+    except Exception as e:
+        logging.error("Could not encode payload: {}".format(e))
+        return
+
     topic = base_topic + "/" + action["type"]
 
     ticket = client.publish(topic, payload)
@@ -58,7 +58,7 @@ def connect(address, base_topic):
 
     actions_queue = queue.Queue()
 
-    client = mqtt.Client()
+    client = paho_mqtt.Client()
     client.on_message = functools.partial(_on_message, actions_queue)
     client.connect(host, int(port), 60)
     client.subscribe("{}/#".format(base_topic))

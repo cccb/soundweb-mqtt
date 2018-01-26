@@ -104,8 +104,8 @@ def _handle_action(dispatch, send, state, action):
     state = copy.deepcopy(state)
 
     if action["type"] == actions.SET_LEVEL_REQUEST:
-        level_id = action["payload"].get("id")
-        value = action["payload"].get("value")
+        level_id = action["payload"]["id"]
+        value = action["payload"]["value"]
 
         logging.info("Setting level (id={}) to {}".format(level_id, value))
 
@@ -118,10 +118,13 @@ def _handle_action(dispatch, send, state, action):
         state["levels"][level_id] = value
 
     elif action["type"] == actions.GET_LEVEL_REQUEST:
-        level_id = action["payload"].get("id")
-        value = state["levels"][level_id]
+        level_id = action["payload"]["id"]
+        try:
+            value = state["levels"][level_id]
+            dispatch(actions.get_level_succes(level_id, value))
+        except KeyError:
+            dispatch(action.get_level_error(level_id, 404, "unknown id"))
 
-        dispatch(actions.get_level_succes(level_id, value))
 
     elif action["type"] == actions.GET_LEVELS_REQUEST:
         dispatch(actions.get_levels_success(state["levels"]))
@@ -167,6 +170,12 @@ def _handle_action(dispatch, send, state, action):
 
     elif action["type"] == actions.GET_SOURCES_REQUEST:
         dispatch(actions.get_sources_success(state["sources"]))
+
+    elif action["type"] == actions.MESSAGE_DECODE_ERROR_RESULT:
+        error_result = action["payload"]
+        dispatch(actions.message_decode_error(error_result["topic"],
+                                              error_result["payload"],
+                                              error_result["error"]))
 
 
     return state

@@ -7,7 +7,7 @@ SET_LEVEL_SUCCESS = "SET_LEVEL_SUCCESS"
 
 GET_LEVEL_REQUEST = "GET_LEVEL_REQUEST"
 GET_LEVEL_SUCCESS = "GET_LEVEL_SUCCESS"
-GET_LEVEL_ERRROR  = "GET_LEVEL_ERROR"
+GET_LEVEL_ERROR   = "GET_LEVEL_ERROR"
 
 GET_LEVELS_REQUEST = "GET_LEVELS_REQUEST"
 GET_LEVELS_SUCCESS = "GET_LEVELS_SUCCESS"
@@ -77,7 +77,17 @@ def get_level_success(level_id, value):
         "payload": {
             "id": level_id,
             "value": value,
-        }
+        },
+    }
+
+
+def get_level_error(level_id, error):
+    return {
+        "type": GET_LEVEL_ERROR,
+        "payload": {
+            "id": level_id,
+            "error": error,
+        },
     }
 
 
@@ -106,6 +116,16 @@ def get_toggle_success(toggle_id, state):
         "payload": {
             "state": state == 1,
             "id": toggle_id,
+        }
+    }
+
+
+def get_toggle_error(toggle_id, error):
+    return {
+        "type": GET_TOGGLE_ERROR,
+        "payload": {
+            "id": toggle_id,
+            "error": error,
         }
     }
 
@@ -139,11 +159,11 @@ def get_source_success(source_id, value):
     }
 
 
-def get_source_error(source_id, code, error):
+def get_source_error(source_id, error):
     return {
         "type": GET_SOURCE_ERROR,
         "payload": {
-            "code": code,
+            "id": source_id,
             "error": error,
         },
     }

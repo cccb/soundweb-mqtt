@@ -123,15 +123,16 @@ def _handle_action(dispatch, send, state, action):
             value = state["levels"][level_id]
             dispatch(actions.get_level_succes(level_id, value))
         except KeyError:
-            dispatch(action.get_level_error(level_id, 404, "unknown id"))
+            dispatch(actions.get_level_error(level_id, "404 unknown id"))
 
 
     elif action["type"] == actions.GET_LEVELS_REQUEST:
         dispatch(actions.get_levels_success(state["levels"]))
 
+
     elif action["type"] == actions.SET_TOGGLE_REQUEST:
-        toggle_id = action["payload"].get("id")
-        value = action["payload"].get("value")
+        toggle_id = action["payload"]["id"]
+        value = action["payload"]["value"]
 
         logging.info("Setting toggle (id={}) to {}".format(toggle_id, value))
 
@@ -144,14 +145,20 @@ def _handle_action(dispatch, send, state, action):
         # Update state
         state["toggles"][toggle_id] = value
 
-    elif action["type"] == actions.GET_TOGGLE_REQUEST:
-        toggle_id = action["payload"].get("id")
 
-        dispatch(actions.get_toggle_success(toggle_id,
-                                            state["toggles"].get(toggle_id)))
+    elif action["type"] == actions.GET_TOGGLE_REQUEST:
+        toggle_id = action["payload"]["id"]
+
+        try:
+            dispatch(actions.get_toggle_success(toggle_id,
+                                                state["toggles"][toggle_id]))
+        except KeyError:
+            dispatch(actions.get_toggle_error(toggle_id, "404 unknown id"))
+
 
     elif action["type"] == actions.GET_TOGGLES_REQUEST:
         dispatch(actions.get_toggles_success(state["toggles"]))
+
 
     elif action["type"] == actions.SET_SOURCE_REQUEST:
         source_id = action["payload"].get("id")
@@ -162,14 +169,20 @@ def _handle_action(dispatch, send, state, action):
 
         state["sources"][source_id] = value
 
+
     elif action["type"] == actions.GET_SOURCE_REQUEST:
         source_id = action["payload"].get("id")
 
-        dispatch(actions.get_source_success(source_id,
-                                            state["sources"].get(source_id)))
+        try:
+            dispatch(actions.get_source_success(source_id,
+                                                state["sources"][source_id]))
+        except KeyError:
+            dispatch(actions.get_source_error(source_id, "404 unknown id"))
+
 
     elif action["type"] == actions.GET_SOURCES_REQUEST:
         dispatch(actions.get_sources_success(state["sources"]))
+
 
     elif action["type"] == actions.MESSAGE_DECODE_ERROR_RESULT:
         error_result = action["payload"]

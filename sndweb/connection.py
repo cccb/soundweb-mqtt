@@ -22,7 +22,7 @@ def connect(path):
 
     # Open real connection
     try:
-        conn = serial.Serial(path, baudrate=38400, timeout=1/30)
+        conn = serial.Serial(path, baudrate=38400, timeout=1/100)
     except serial.serialutil.SerialException as e:
         logging.error(str(e))
         sys.exit(-1)
@@ -51,7 +51,7 @@ def _connect_debug():
     def mock_receive():
         while True:
             yield
-            time.sleep(1)
+            time.sleep(1/100)
 
     return mock_receive, mock_send
 

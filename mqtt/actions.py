@@ -85,6 +85,16 @@ def get_toggles_success(toggles):
     }
 
 
+def set_source_success(source_id, value):
+    return {
+        "type": SET_SOURCE_SUCCESS,
+        "payload": {
+            "id": source_id,
+            "value": value,
+        }
+    }
+
+
 def get_source_success(source_id, value):
     return {
         "type": GET_SOURCE_SUCCESS,

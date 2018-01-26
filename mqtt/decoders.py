@@ -37,8 +37,8 @@ def decode_action(topic, payload):
 def _decode_action_payload(action_type, payload):
     """Decode action payload for specific action types"""
     try:
-        payload = json.loads(payload)
-    except json.JSONDecodeError as e:
+        payload = json.loads(str(payload, "utf-8"))
+    except Exception as e:
         logging.warning("Could not decode JSON payload: {}".format(e))
         payload = {}
 
@@ -56,9 +56,12 @@ def _decode_action_payload(action_type, payload):
 
 
     if action_type in [actions.SET_LEVEL_REQUEST,
-                       actions.SET_TOGGLE_REQUEST,
                        actions.SET_SOURCE_REQUEST]:
-        return _decode_set_id_payload(payload)
+        return _decode_set_value_payload(payload)
+
+
+    if action_type in [actions.SET_TOGGLE_REQUEST]:
+        return _decode_set_state_payload(payload)
 
 
 def _decode_get_id_payload(payload):
@@ -73,7 +76,7 @@ def _decode_get_id_payload(payload):
     }
 
 
-def _decode_set_id_payload(payload):
+def _decode_set_value_payload(payload):
     try:
         payload_id = payload["id"]
     except KeyError:
@@ -89,4 +92,23 @@ def _decode_set_id_payload(payload):
         "value": payload_value
     }
 
+
+def _decode_set_state_payload(payload):
+    try:
+        payload_id = payload["id"]
+    except KeyError:
+        raise DecodeMessageError("Missing payload: id")
+
+    try:
+        payload_value = payload["state"]
+    except KeyError:
+        raise DecodeMessageError("Missing payload: value")
+
+
+    payload_state = 1 if payload_value == True else 0
+
+    return {
+        "id": payload_id,
+        "state": payload_state,
+    }
 

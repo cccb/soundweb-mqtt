@@ -78,7 +78,7 @@ def _handle_soundweb_set_value(dispatch, state, group, control_id, value):
         state["levels"][control_id] = value
 
     elif group == message.SW_AMX_TOGGLE:
-        logging.info("Publishing set toggle(id={}, value={}) update".format(
+        logging.info("Publishing set toggle(id={}, state={}) update".format(
             control_id, value))
 
         dispatch(actions.set_toggle_success(control_id, value))
@@ -132,7 +132,7 @@ def _handle_action(dispatch, send, state, action):
 
     elif action["type"] == actions.SET_TOGGLE_REQUEST:
         toggle_id = action["payload"]["id"]
-        value = action["payload"]["value"]
+        value = action["payload"]["state"]
 
         logging.info("Setting toggle (id={}) to {}".format(toggle_id, value))
 
@@ -163,6 +163,8 @@ def _handle_action(dispatch, send, state, action):
     elif action["type"] == actions.SET_SOURCE_REQUEST:
         source_id = action["payload"].get("id")
         value = action["payload"].get("value")
+
+        logging.info("Setting source (id={}) to {}".format(source_id, value))
 
         send(message.set_value(message.SW_AMX_SOURCE, source_id, value))
         dispatch(actions.set_source_success(source_id, value))

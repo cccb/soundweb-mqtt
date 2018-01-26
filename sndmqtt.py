@@ -84,6 +84,14 @@ def _handle_soundweb_set_value(dispatch, state, group, control_id, value):
         dispatch(actions.set_toggle_success(control_id, value))
         state["toggles"][control_id] = (value == 1)
 
+    elif group == message.SW_AMX_SOURCE:
+        logging.info("Publishing set source(id={}, value={}) update".format(
+            control_id, value))
+
+        dispatch(actions.set_source_success(control_id, value))
+        state["sources"][control_id] = value
+
+
     return state
 
 
@@ -137,11 +145,28 @@ def _handle_action(dispatch, send, state, action):
         toggle_id = action["payload"].get("id")
 
         dispatch(actions.get_toggle_success(toggle_id,
-                                            state["toggles"][toggle_id]))
-
+                                            state["toggles"].get(toggle_id)))
 
     elif action["type"] == actions.GET_TOGGLES_REQUEST:
         dispatch(actions.get_toggles_success(state["toggles"]))
+
+    elif action["type"] == actions.SET_SOURCE_REQUEST:
+        source_id = action["payload"].get("id")
+        value = action["payload"].get("value")
+
+        send(message.set_value(message.SW_AMX_SOURCE, source_id, value))
+        dispatch(actions.set_source_success(source_id, value))
+
+        state["sources"][source_id] = value
+
+    elif action["type"] == actions.GET_SOURCE_REQUEST:
+        source_id = action["payload"].get("id")
+
+        dispatch(actions.get_source_success(source_id,
+                                            state["sources"].get(source_id)))
+
+    elif action["type"] == actions.GET_SOURCES_REQUEST:
+        dispatch(actions.get_sources_success(state["sources"]))
 
 
     return state
@@ -169,6 +194,7 @@ def main(args):
     state = {
         "levels": {},
         "toggles": {},
+        "sources": {},
     }
 
     # Main loop

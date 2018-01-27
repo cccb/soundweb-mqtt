@@ -131,11 +131,11 @@ def get_toggle_error(toggle_id, error):
 
 
 def get_toggles_success(toggles):
-    level_values = [{"id": k, "value": v} for k, v in toggles.items()]
+    toggle_values = [{"id": k, "value": v == 1} for k, v in toggles.items()]
 
     return {
         "type": GET_TOGGLES_SUCCESS,
-        "payload": level_values,
+        "payload": toggle_values,
     }
 
 

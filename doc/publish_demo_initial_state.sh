@@ -4,6 +4,14 @@
 MPUB=mosquitto_pub
 BASE_TOPIC="soundweb"
 
+if [ ! -z $1 ]; then
+    BASE_TOPIC=$1
+fi
+
+echo "Publishing to: $BASE_TOPIC/"
+
+
+
 function pub {
     $MPUB -t "$BASE_TOPIC/$1" -m "$2"
 }

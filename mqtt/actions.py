@@ -131,7 +131,7 @@ def get_toggle_error(toggle_id, error):
 
 
 def get_toggles_success(toggles):
-    toggle_values = [{"id": k, "value": v == 1} for k, v in toggles.items()]
+    toggle_values = [{"id": k, "state": v == 1} for k, v in toggles.items()]
 
     return {
         "type": GET_TOGGLES_SUCCESS,

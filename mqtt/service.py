@@ -17,6 +17,7 @@ import mqtt.actions as mqtt_actions
 
 def _on_message(actions, _client, _obj, msg):
     """Handle incoming messages from MQTT"""
+    logging.debug("Incoming MQTT message: {}".format(msg))
     try:
         action = decoders.decode_action(msg.topic, msg.payload)
     except decoders.DecodeMessageError as e:
@@ -48,6 +49,15 @@ def _receive(actions):
         return None
 
 
+def _log(_client, userdata, level, buf):
+    logging.debug("MQTT: {}".format(buf))
+
+
+def _on_connect(base_topic, client, userdata, flags, rc):
+    # Subscribe to queue
+    client.subscribe("{}/#".format(base_topic))
+
+
 def connect(address, base_topic):
     """Open connection, subscribe and create dispatch"""
     try:
@@ -56,13 +66,17 @@ def connect(address, base_topic):
         host = address
         port = 1883
 
+    logging.info("Connecting to mqtt://{}:{}".format(host, port))
+
     actions_queue = queue.Queue()
 
     client = paho_mqtt.Client()
+    client.on_log = _log
     client.on_message = functools.partial(_on_message, actions_queue)
+    client.on_connect = functools.partial(_on_connect, base_topic)
     client.connect(host, int(port), 60)
-    client.subscribe("{}/#".format(base_topic))
 
+    logging.info("Connected.")
     logging.info("Receiving actions on topic {}/#".format(base_topic))
 
     # Start client in dedicated thread. Do not

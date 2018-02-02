@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-MPUB=mosquitto_pub
+MPUB="mosquitto_pub -p $PORT -h $HOST "
 BASE_TOPIC="soundweb"
 
 if [ ! -z $1 ]; then
@@ -14,6 +14,7 @@ echo "Publishing to: $BASE_TOPIC/"
 
 function pub {
     $MPUB -t "$BASE_TOPIC/$1" -m "$2"
+    echo $MPUB -t "$BASE_TOPIC/$1" -m "$2"
 }
 
 function set_level {

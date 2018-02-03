@@ -56,6 +56,11 @@ def _log(_client, userdata, level, buf):
 def _on_connect(base_topic, client, userdata, flags, rc):
     # Subscribe to queue
     client.subscribe("{}/#".format(base_topic))
+    logging.info("Receiving actions on topic {}/#".format(base_topic))
+
+
+def _on_disconnect(client, userdata, rc):
+    logging.warning("MQTT client disconnected.")
 
 
 def connect(address, base_topic):
@@ -71,13 +76,19 @@ def connect(address, base_topic):
     actions_queue = queue.Queue()
 
     client = paho_mqtt.Client()
+
+    # Configure Client
+    client.reconnect_delay_set(min_delay=1, max_delay=15)
+
+    # Client Callbacks
     client.on_log = _log
     client.on_message = functools.partial(_on_message, actions_queue)
     client.on_connect = functools.partial(_on_connect, base_topic)
-    client.connect(host, int(port), 60)
+    client.on_disconnect = _on_disconnect
 
+    # Open connection
+    client.connect(host, int(port), 60)
     logging.info("Connected.")
-    logging.info("Receiving actions on topic {}/#".format(base_topic))
 
     # Start client in dedicated thread. Do not
     # block our main application.

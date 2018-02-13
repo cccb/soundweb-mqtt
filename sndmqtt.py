@@ -3,8 +3,10 @@ import argparse
 import logging
 import copy
 
+from llama import mqtt
+
 from sndweb import connection, message
-from mqtt import service, actions
+from mqtt import actions
 
 
 def parse_args():
@@ -209,8 +211,10 @@ def main(args):
     receive, send = connection.connect(args.serial)
 
     # Connect to MQTT broker
-    receive_action, dispatch = service.connect(args.broker,
-                                               args.topic)
+    dispatch, receive_action = mqtt.connect(args.broker, {
+        "soundweb": args.topic,
+        "meta": "v1/_meta",
+    })
 
     logging.info("Serial and MQTT connected")
 
@@ -229,7 +233,7 @@ def main(args):
             state = _handle_message(dispatch, state, msg)
 
         # Check if there are MQTT actions
-        action = receive_action()
+        action = receive_action(once=True, timeout=0)
         if action:
             # Handle MQTT action
             state = _handle_action(dispatch, send, state, action)

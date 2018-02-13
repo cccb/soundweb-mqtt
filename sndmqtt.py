@@ -7,6 +7,7 @@ from llama import mqtt
 
 from sndweb import connection, message
 from mqtt import actions
+from meta import handler as meta_handler
 
 
 def parse_args():
@@ -237,6 +238,7 @@ def main(args):
         if action:
             # Handle MQTT action
             state = _handle_action(dispatch, send, state, action)
+            meta_handler.handle(dispatch, action)
 
 
 if __name__ == "__main__":
